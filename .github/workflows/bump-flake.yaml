@@ -1,0 +1,83 @@
+name: Bump flake.lock
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+    - cron: "0 18 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Provision mock vars.nix
+        run: |
+          mkdir -p ~/.config/nix-config
+          cat > ~/.config/nix-config/vars.nix <<'EOF'
+          {
+            username = "ci";
+            homeDirectory = "/home/ci";
+            system = "aarch64-darwin";
+            git = {
+              personal = { name = "CI"; email = "ci@example.com"; };
+              work = { name = "CI"; email = "ci-work@example.com"; };
+            };
+          }
+          EOF
+
+      # Zed is Rust and compiling Rust on this laptop is a lifestyle choice
+      # I did not sign up for. Asking cache.nixos.org nicely first.
+      - name: Check zed-editor and bump flake.lock
+        continue-on-error: true
+        run: nix develop --override-input vars path:$HOME/.config/nix-config/vars.nix -c just update
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet flake.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit flake.lock
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B automated/flake-update
+          git add flake.lock
+          git commit -m "flake.lock: bump nixpkgs"
+
+      - name: Push branch
+        if: steps.diff.outputs.changed == 'true'
+        run: git push --force origin automated/flake-update
+
+      # If old PR is still unmerged, refresh it by 'force-push'ing to latest bump.
+      - name: Open or update PR
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh pr create \
+            --title "Bump flake.lock" \
+            --base main \
+            --head automated/flake-update \
+            --body "Automated: zed-editor is cached and ready to pull at this revision."
+          then
+            echo "Opened PR"
+          else
+            echo "Refresh PR"
+          fi

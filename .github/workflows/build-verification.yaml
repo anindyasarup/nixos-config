@@ -1,0 +1,33 @@
+name: Build verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Provision mock vars.nix
+        run: |
+          mkdir -p ~/.config/nix-config
+          cat > ~/.config/nix-config/vars.nix <<'EOF'
+          {
+            username = "ci";
+            homeDirectory = "/Users/ci";
+            system = "aarch64-darwin";
+            git = {
+              personal = { name = "CI"; email = "ci@example.com"; };
+              work = { name = "CI"; email = "ci-work@example.com"; };
+            };
+          }
+          EOF
+
+      - name: Build darwinConfigurations.default.system
+        run: nix build .#darwinConfigurations.default.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
