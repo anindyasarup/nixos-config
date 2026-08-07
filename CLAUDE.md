@@ -144,3 +144,8 @@ email may ever appear in tracked files.
   otherwise it can try both keys and authenticate as the wrong account.
   Both aliases set `HostKeyAlias = "github.com"` to share one `known_hosts`
   entry instead of prompting twice.
+- `bump-flake.yaml`'s `cron: "0 16 * * *"` targets 2am Melbourne time at
+  UTC+10 (AEST). GitHub Actions schedules are fixed UTC with no timezone
+  awareness, so during Melbourne's daylight saving (AEDT, UTC+11, roughly
+  Oct-Apr) this actually fires at 3am local time; there's no fix for that
+  short of maintaining two seasonal cron lines.

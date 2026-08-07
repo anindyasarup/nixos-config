@@ -2,8 +2,7 @@ name: Bump flake.lock
 
 on:
   schedule:
-    - cron: "0 6 * * *"
-    - cron: "0 18 * * *"
+    - cron: "0 16 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -12,7 +11,7 @@ permissions:
 
 jobs:
   bump:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -28,7 +27,7 @@ jobs:
           cat > ~/.config/nix-config/vars.nix <<'EOF'
           {
             username = "ci";
-            homeDirectory = "/home/ci";
+            homeDirectory = "/Users/ci";
             system = "aarch64-darwin";
             git = {
               personal = { name = "CI"; email = "ci@example.com"; };
