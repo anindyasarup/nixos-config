@@ -15,10 +15,10 @@
     tree
 
     discord
-    google-chrome
     raycast
     whatsapp-for-mac
     zoom-us
     jetbrains-toolbox
+    brave
   ];
 }
