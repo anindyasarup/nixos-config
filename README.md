@@ -11,18 +11,6 @@ usernames, hostnames, paths, or emails live in this repo.
 just rebuild        # = sudo darwin-rebuild switch --flake .#default <vars override>
 ```
 
-## Privacy design
-
-Identity (username, home path, git name/email) lives in
-`~/.config/nix-config/vars.nix`, **outside this repo**. `flake.nix` takes it
-as a flake input (`vars`), pointed at that file via `--override-input vars
-path:~/.config/nix-config/vars.nix` (`.envrc`, the `justfile`, and CI all do
-this already, so you shouldn't need to pass it by hand). Left un-overridden,
-it resolves to the tracked `vars-required.nix` stub, which throws instead of
-silently using a placeholder. This keeps every command pure: no `--impure`
-anywhere. The machine config is named `default`, so no hostname appears here
-either.
-
 ## Layout
 
 - `flake.nix`: inputs (nixpkgs unstable, nix-darwin, home-manager), vars
@@ -67,7 +55,7 @@ arbitrary hardware.
 curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 # Open a new terminal afterward to pick up the shell-rc edits.
 
-# 3. Identity, required before step 4 (see "Privacy design" above).
+# 3. Identity, required before step 4 (see "Privacy design" below).
 mkdir -p ~/.config/nix-config
 cat > ~/.config/nix-config/vars.nix <<'EOF'
 {
@@ -166,3 +154,15 @@ macOS Keychain or per-project gitignored `.envrc` files via direnv.
 Removed in 2026-07, then reintroduced narrowly for the handful of macOS apps
 nix can't install directly (vendor-signed installer + system extension,
 currently just Mullvad VPN). See `CLAUDE.md` for what's allowed and why.
+
+## Privacy design
+
+Identity (username, home path, git name/email) lives in
+`~/.config/nix-config/vars.nix`, **outside this repo**. `flake.nix` takes it
+as a flake input (`vars`), pointed at that file via `--override-input vars
+path:~/.config/nix-config/vars.nix` (`.envrc`, the `justfile`, and CI all do
+this already, so you shouldn't need to pass it by hand). Left un-overridden,
+it resolves to the tracked `vars-required.nix` stub, which throws instead of
+silently using a placeholder. This keeps every command pure: no `--impure`
+anywhere. The machine config is named `default`, so no hostname appears here
+either.
