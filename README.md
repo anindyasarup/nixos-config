@@ -141,6 +141,36 @@ no key. That's deliberate: it fails loudly instead of quietly committing
 under the wrong name. Clone with the normal `git@github.com:` URL; the
 config rewrites it to the right alias based on the directory.
 
+### `gh` authentication, per directory
+
+The SSH keys above cover `git` itself, but not the `gh` CLI, which uses its
+own token. `gh auth switch` is global, so it can't follow the same
+directory split. Instead, store each account's token in Keychain and let
+direnv export the right one:
+
+```sh
+# 1. Log in as the account you want, then stash its token in Keychain.
+# `-U` updates an existing entry instead of erroring; use it when rotating.
+gh auth login
+security add-generic-password -U -a "$USER" -s "gh-personal" -w "$(gh auth token)"
+
+# 2. Repeat for the work account, under the service name "gh-work".
+
+# 3. One .envrc per tree, OUTSIDE this repo, so `gh` picks the right token
+# from the directory alone. `gh` checks GH_TOKEN before its own config.
+echo 'export GH_TOKEN=$(security find-generic-password -s "gh-personal" -w)' \
+  > ~/Development/personal/.envrc
+echo 'export GH_TOKEN=$(security find-generic-password -s "gh-work" -w)' \
+  > ~/Development/work/.envrc
+
+direnv allow ~/Development/personal
+direnv allow ~/Development/work
+```
+
+Verify with `gh auth status` inside each tree: it should report the matching
+account. These `.envrc` files sit above the repos they apply to and are
+never tracked here.
+
 ### Raycast's `⌘Space` hotkey
 
 Nix only installs the app bundle, it can't run first-launch onboarding or
