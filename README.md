@@ -104,11 +104,6 @@ Not handled by this repo, do once yourself:
   `~/Development/work/` automatically get the matching identity and key;
   neither is a default, so repos outside both directories get no identity
   or key from this config.
-- **Rosetta 2**: not required by this flake as configured. nix-homebrew's
-  `enableRosetta` defaults to false and isn't set in `flake.nix`, and every
-  package here targets `aarch64-darwin` directly. Install it
-  (`softwareupdate --install-rosetta --agree-to-license`) only if something
-  later needs an Intel-only binary.
 - **Raycast's `⌘Space` hotkey**: Nix only installs the app bundle, it can't
   run first-launch onboarding or touch macOS's own keybindings. Launch
   Raycast once (Launchpad, or `open -a Raycast`) and let onboarding take
@@ -147,11 +142,6 @@ versus what "will be built" (local compile). If `just update` succeeded but
 different package Hydra hasn't cached yet; hold it back with `just
 undo-update` and try again in a day.
 
-## Python
-
-Python is owned by `uv`, not nixpkgs: `uv python install`, `uv venv`, `uv add`.
-Only the `uv` binary itself comes from Nix.
-
 ## Secrets
 
 Never in `.nix` files (the Nix store is world-readable). API keys go in the
@@ -159,9 +149,8 @@ macOS Keychain or per-project gitignored `.envrc` files via direnv.
 
 ## Homebrew
 
-Removed in 2026-07, then reintroduced narrowly for the handful of macOS apps
-nix can't install directly (vendor-signed installer + system extension,
-currently just Mullvad VPN). See `CLAUDE.md` for what's allowed and why.
+Used narrowly for apps nix can't install directly. See `CLAUDE.md` for
+what's allowed and why.
 
 ## Privacy design
 
