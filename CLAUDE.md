@@ -150,6 +150,15 @@ the same package set for both profiles.
   workflow, and per-project Python respectively), not things every
   directory needs, so they live in `flake.nix`'s devShell instead, picked
   up via direnv only inside repos that declare them.
+- The `justfile` carries no comments, so three things it used to explain live
+  here instead. `vars_override` resolves `env_var("HOME")` at parse time, as
+  the invoking user, so it stays correct in the recipes where `sudo` follows
+  (an in-recipe `$HOME` read under sudo would not). `cleanup`'s `+N` keeps
+  the N newest generations plus anything newer than current (in case a
+  rollback happened), and the `nix-collect-garbage` line is what actually
+  reclaims disk; deleting the generation registration alone frees nothing.
+  `rollback` reverts an activation, whereas `undo-update` reverts `flake.lock`
+  before a rebuild has happened at all.
 - Modern bash (5.x, via `programs.bash.enable`) stays on `PATH` alongside
   zsh (the login shell) because macOS ships bash 3.2 in `/bin/bash`.
   Ghostty's `command` (`modules/home/ghostty.nix`) launches `bashInteractive`
