@@ -101,24 +101,54 @@ Command Line Tools stub for good.
 
 Not handled by this repo, do once yourself:
 
-- **SSH keys**, for `git push`/private clones: `modules/home/git.nix` only
-  points ssh at `~/.ssh/id_ed25519_personal` and `~/.ssh/id_ed25519_work`
-  plus Keychain, it doesn't generate either. `ssh-keygen -t ed25519 -C
-  "you@example.com" -f ~/.ssh/id_ed25519_personal` (repeat with `_work` and
-  your work email), add each public key to its respective GitHub account,
-  then `ssh-add --apple-use-keychain ~/.ssh/id_ed25519_personal` (and the
-  same for `_work`) once so both passphrases land in Keychain for
-  `UseKeychain` to find. Repos cloned under `~/Development/personal/` or
-  `~/Development/work/` automatically get the matching identity and key;
-  neither is a default, so repos outside both directories get no identity
-  or key from this config.
-- **Raycast's `⌘Space` hotkey**: Nix only installs the app bundle, it can't
-  run first-launch onboarding or touch macOS's own keybindings. Launch
-  Raycast once (Launchpad, or `open -a Raycast`) and let onboarding take
-  over `⌘Space` from Spotlight; if it doesn't ask, uncheck Spotlight's
-  shortcut yourself in System Settings > Keyboard > Keyboard Shortcuts >
-  Spotlight, then set `⌘Space` in Raycast > Settings > General > Raycast
-  Hotkey.
+### SSH keys, for `git push` and private clones
+
+`modules/home/git.nix` points ssh at `~/.ssh/id_ed25519_personal` and
+`~/.ssh/id_ed25519_work` and wires them to Keychain, but it doesn't generate
+either. Per account:
+
+```sh
+# 1. Generate the key. Repeat with _work and your work email.
+ssh-keygen -t ed25519 -C "you@example.com" -f ~/.ssh/id_ed25519_personal
+
+# 2. Load it into the agent once, so the passphrase lands in Keychain where
+# the config's `UseKeychain` can find it later. Repeat for _work.
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519_personal
+
+# 3. Copy the PUBLIC key and add it to the matching GitHub account at
+# https://github.com/settings/keys. Repeat for _work.
+pbcopy < ~/.ssh/id_ed25519_personal.pub
+
+# 4. Verify each alias authenticates as the right account.
+ssh -T git@github.com-personal
+ssh -T git@github.com-work
+```
+
+Step 4 should greet you with the corresponding username. That works because
+`modules/home/git.nix` defines two SSH `Host` aliases, `github.com-personal`
+and `github.com-work`, each pinned to exactly one key.
+
+Which one a repo uses is decided purely by where it lives on disk:
+
+| Repo location             | Identity + key                  |
+| ------------------------- | ------------------------------- |
+| `~/Development/personal/` | personal email, `_personal` key |
+| `~/Development/work/`     | work email, `_work` key         |
+| anywhere else             | none at all                     |
+
+Neither is a default, so a repo outside both trees gets no git identity and
+no key. That's deliberate: it fails loudly instead of quietly committing
+under the wrong name. Clone with the normal `git@github.com:` URL; the
+config rewrites it to the right alias based on the directory.
+
+### Raycast's `⌘Space` hotkey
+
+Nix only installs the app bundle, it can't run first-launch onboarding or
+touch macOS's own keybindings. Launch Raycast once (Launchpad, or `open -a
+Raycast`) and let onboarding take over `⌘Space` from Spotlight; if it
+doesn't ask, uncheck Spotlight's shortcut yourself in System Settings >
+Keyboard > Keyboard Shortcuts > Spotlight, then set `⌘Space` in Raycast >
+Settings > General > Raycast Hotkey.
 
 ## Finding packages
 
