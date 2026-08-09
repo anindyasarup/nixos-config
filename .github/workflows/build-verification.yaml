@@ -7,9 +7,6 @@ on:
 jobs:
   build:
     runs-on: macos-14
-    strategy:
-      matrix:
-        profile: [personal, work]
     steps:
       - uses: actions/checkout@v4
 
@@ -31,5 +28,8 @@ jobs:
           }
           EOF
 
-      - name: Build darwinConfigurations.${{ matrix.profile }}.system
-        run: nix build .#darwinConfigurations.${{ matrix.profile }}.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
+      - name: Build darwinConfigurations.personal.system
+        run: nix build .#darwinConfigurations.personal.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
+
+      - name: Build darwinConfigurations.work.system
+        run: nix build .#darwinConfigurations.work.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
