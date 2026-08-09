@@ -179,6 +179,11 @@ the same package set for both profiles.
   otherwise it can try both keys and authenticate as the wrong account.
   Both aliases set `HostKeyAlias = "github.com"` to share one `known_hosts`
   entry instead of prompting twice.
+- `core.hooksPath` (`modules/home/git.nix`) replaces `.git/hooks` rather than
+  adding to it, so the global gitleaks `pre-commit` has to `exec` the
+  project's own hook or it silently kills it. Only `pre-commit` is covered,
+  and a repo-local `core.hooksPath` (husky) still wins over the global one:
+  `docs/adr/0011-chained-git-pre-commit-hook.md`.
 - `bump-flake.yaml`'s `cron: "0 16 * * *"` targets 2am Melbourne time at
   UTC+10 (AEST). GitHub Actions schedules are fixed UTC with no timezone
   awareness, so during Melbourne's daylight saving (AEDT, UTC+11, roughly

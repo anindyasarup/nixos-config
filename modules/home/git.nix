@@ -1,17 +1,51 @@
 {
+  config,
+  lib,
   vars,
   pkgs,
   ...
 }:
 
+let
+  hookName = "pre-commit";
+  hooksSubdir = "git/hooks";
+
+  globalChecks = [
+    {
+      package = pkgs.gitleaks;
+      args = [
+        "git"
+        "--pre-commit"
+        "--staged"
+      ];
+    }
+  ];
+
+  runChecks = lib.concatMapStringsSep "\n" (
+    check: "${lib.getExe check.package} ${lib.escapeShellArgs check.args}"
+  ) globalChecks;
+
+  preCommit = pkgs.writeShellScript "git-hook-${hookName}" ''
+    set -eu
+
+    ${runChecks}
+
+    common_dir=$(${lib.getExe config.programs.git.package} rev-parse --git-common-dir)
+    for candidate in "$common_dir/hooks/${hookName}" ".husky/_/${hookName}"; do
+      if [ -x "$candidate" ]; then
+        exec "$candidate" "$@"
+      fi
+    done
+  '';
+in
 {
+  xdg.configFile."${hooksSubdir}/${hookName}".source = preCommit;
+
   programs.git = {
     enable = true;
-    hooks.pre-commit = pkgs.writeShellScript "gitleaks-pre-commit" ''
-      ${pkgs.gitleaks}/bin/gitleaks git --pre-commit --staged
-    '';
     settings = {
       init.defaultBranch = "main";
+      core.hooksPath = "${config.xdg.configHome}/${hooksSubdir}";
       url."git@github.com:".pushInsteadOf = "https://github.com/";
 
       commit.verbose = true;
