@@ -16,26 +16,36 @@ narrow, closed set of macOS software nix structurally cannot install (see
 build, not notarized), the fallback is a direct download from the vendor,
 not Homebrew.
 
-## Homebrew: narrow, closed exception
+## Homebrew: narrow exception
 
 Homebrew was fully removed (2026-07) and stays removed as the general
 package manager. It comes back only through nix-darwin's declarative
 `homebrew.*` module (`modules/homebrew.nix`), never an ad hoc `brew install`
 or `brew tap` outside of what's declared there.
 
-What justifies using it is the install mechanism, not availability.
-"It's not in nixpkgs" or "it's awkward to package" doesn't clear the bar:
-the default for that is still a vendor direct download, as above. Homebrew
-is for software that needs a vendor-signed installer plus a macOS
-system/network/kernel extension going through Apple's extension-approval
-flow, something nix can't do. It's the same reason nixpkgs marks
-`mullvad-vpn` `badPlatforms` for Darwin.
+Two things justify a cask, and nothing else does:
 
-The whitelist is closed: Mullvad VPN (`homebrew.casks = [ "mullvad-vpn" ]`)
-is the only entry today. Don't add a tap, formula, or cask because it seems
-convenient in the moment. If something new looks like it needs Homebrew,
-ask the user to add it here first. This file is the source of truth, not
-whatever seems reasonable in the moment.
+1. **The install mechanism.** Software needing a vendor-signed installer
+   plus a macOS system/network/kernel extension through Apple's
+   extension-approval flow, which nix structurally can't do. Same reason
+   nixpkgs marks `mullvad-vpn` `badPlatforms` for Darwin.
+2. **A GUI app genuinely absent from nixpkgs on `aarch64-darwin`**, where
+   the only other option is re-downloading a `.dmg` by hand for every
+   update. `brew upgrade` keeping it current is worth more than the purity
+   of a manual download here.
+
+Reason 2 is a real relaxation of the original rule (which sent this case to
+a vendor direct download), so keep it honest: check nixpkgs first and only
+fall back to a cask when the package truly isn't there for
+`aarch64-darwin`. "Awkward to package" or "easier via brew" still doesn't
+clear the bar for something nixpkgs already ships.
+
+Current casks (`modules/homebrew.nix`): `focusrite-control` (reason 1),
+`claude` (reason 2), `mullvad-vpn` (reason 1). Don't add a tap, formula, or
+cask because it seems convenient in the moment; if something new looks like
+it needs Homebrew, check it against the two reasons above and ask the user
+before adding. This file is the source of truth, not whatever seems
+reasonable in the moment.
 
 Homebrew itself (the `brew` binary) is bootstrapped declaratively too,
 through the `nix-homebrew` flake input (wired in `flake.nix`). nix-darwin's
