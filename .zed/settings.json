@@ -20,7 +20,7 @@
         "nixd": {
           "options": {
             "darwin": {
-              "expr": "(builtins.getFlake (builtins.toString ./.)).darwinConfigurations.default.options",
+              "expr": "(builtins.getFlake (builtins.toString ./.)).darwinConfigurations.personal.options",
             },
           },
         },

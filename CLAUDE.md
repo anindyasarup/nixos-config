@@ -47,15 +47,16 @@ separate manual `brew.sh` step.
 ## Commands
 
 ```sh
-just rebuild   # apply config = sudo darwin-rebuild switch --flake .#default <vars override>
-just update    # bump flake inputs (then `just rebuild` to apply)
-just check     # evaluate without applying
+just rebuild personal   # apply = sudo darwin-rebuild switch --flake .#personal <vars override>
+just rebuild work       # same, with the work profile's additions layered on
+just update             # bump flake inputs (then `just rebuild` to apply)
+just check              # evaluate without applying
 ```
 
 Build without activating (no sudo; use this to verify changes):
 
 ```sh
-nix build .#darwinConfigurations.default.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
+nix build .#darwinConfigurations.personal.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
 ```
 
 The `--override-input vars ...` flag is required everywhere, not optional
@@ -78,10 +79,34 @@ email may ever appear in tracked files.
 - Modules receive it as the `vars` arg (via `specialArgs` /
   `extraSpecialArgs`). Use `vars.username`, `vars.homeDirectory`, etc.
   Never literals.
-- The darwin configuration is named `default` (not the hostname) on purpose.
+- The darwin configurations are named by role (`personal`, `work`), never by
+  hostname.
 - Commits must be authored with the GitHub noreply address; the account has
   "block command line pushes that expose my email" enabled, so a real-email
   commit will be rejected at push time.
+
+## Machine profiles
+
+`flake.nix` exposes two outputs, both built from one `mkDarwin` helper:
+`personal` (the shared base) and `work` (that base plus
+`modules/work.nix`). The work profile is strictly additive:
+`modules/work.nix` only appends to list options (`homebrew.casks`,
+`home.packages` via `modules/home/work.nix`), which the module system merges
+onto the base rather than replacing, so `modules/home/packages.nix` and
+`modules/homebrew.nix` stay machine-agnostic and nothing work-specific leaks
+into a personal rebuild.
+
+Which machine you're on is a build-time choice, deliberately not a field in
+`vars.nix`: the profile isn't identity, and keeping it out means both
+machines share one `vars.nix` schema. Anything work-only that *is* identity
+(git name/email) already lives in `vars.git.work` and is selected by
+directory, not by profile.
+
+`just rebuild` and `just preview` both take the profile as a **required**
+argument with no default, so neither can silently rebuild the wrong
+machine's configuration. `just update`'s internal zed-editor cache probe
+hardcodes `personal`, which is fine: the probe only reads `.pkgs`, which is
+the same package set for both profiles.
 
 ## Non-obvious constraints
 

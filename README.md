@@ -8,26 +8,33 @@ usernames, hostnames, paths, or emails live in this repo.
 ## The one command that matters
 
 ```sh
-just rebuild        # = sudo darwin-rebuild switch --flake .#default <vars override>
+just rebuild personal   # = sudo darwin-rebuild switch --flake .#personal <vars override>
+just rebuild work       # same, with the work-only additions layered on
 ```
+
+The profile is a required argument, on purpose: there's no default to
+accidentally rebuild the wrong machine's configuration with.
 
 ## Layout
 
 - `flake.nix`: inputs (nixpkgs unstable, nix-darwin, home-manager), vars
-  resolution, `darwinConfigurations.default` output, plus a `devShells.default`
-  and `formatter` for editing this repo itself
+  resolution, the `darwinConfigurations.personal` / `.work` outputs, plus a
+  `devShells.default` and `formatter` for editing this repo itself
 - `modules/darwin.nix`: core system-level settings
 - `modules/system-defaults.nix`: `system.defaults.*` (dock, Finder, key
   repeat, screenshots, etc.)
 - `modules/homebrew.nix`: the narrow, closed Homebrew exception (see
   `CLAUDE.md`)
+- `modules/work.nix`: purely additive work-machine extras, across both the
+  darwin and home-manager layers (imports `modules/home/work.nix`); the
+  `personal` profile is the shared base with nothing layered on
 - `modules/home/`: the home-manager layer, split by concern:
   `packages.nix` (CLI + GUI), `git.nix` (git/ssh), `shell.nix` (login shell,
   prompt, direnv), `cli-tools.nix` (fzf/bat/yazi/btop), `ghostty.nix`,
   `neovim.nix`, `zed.nix`, `default.nix` (manifest)
 - `.zed/settings.json`: project-local Zed settings (currently just nixd's
   `options` config, pointed at this flake's own
-  `darwinConfigurations.default.options` for hover/autocomplete on
+  `darwinConfigurations.personal.options` for hover/autocomplete on
   nix-darwin options); layered on top of the global
   `programs.zed-editor.userSettings` in `modules/home/zed.nix`
 - `vars-required.nix`: tracked stub (just a `throw`) that the `vars` flake
@@ -78,7 +85,8 @@ EOF
 $EDITOR ~/.config/nix-config/vars.nix
 
 # 4. First activation (darwin-rebuild isn't on PATH yet, run it via `nix run`).
-sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#default \
+# Swap `personal` for `work` on a work machine.
+sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#personal \
   --override-input vars path:$HOME/.config/nix-config/vars.nix
 
 # 5. Open a new terminal, cd back into this repo, and allow direnv. `just`
@@ -135,12 +143,12 @@ exactly as it was and the recipe exits non-zero, no local compile ever
 happens as a side effect of running it. Nothing downloads until the next
 `just rebuild` either way.
 
-For anything beyond zed-editor, `just preview` remains the authoritative,
-whole-closure check: it lists what "will be fetched" (prebuilt, cheap)
-versus what "will be built" (local compile). If `just update` succeeded but
-`just preview` still shows something else under "will be built", that's a
-different package Hydra hasn't cached yet; hold it back with `just
-undo-update` and try again in a day.
+For anything beyond zed-editor, `just preview <profile>` remains the
+authoritative, whole-closure check: it lists what "will be fetched"
+(prebuilt, cheap) versus what "will be built" (local compile). If `just
+update` succeeded but `just preview` still shows something else under "will
+be built", that's a different package Hydra hasn't cached yet; hold it back
+with `just undo-update` and try again in a day.
 
 ## Secrets
 
