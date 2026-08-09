@@ -56,6 +56,7 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 # Open a new terminal afterward to pick up the shell-rc edits.
 
 # 3. Identity, required before step 4 (see "Privacy design" below).
+# username: `whoami`. homeDirectory: `echo $HOME` (normally /Users/<username>).
 mkdir -p ~/.config/nix-config
 cat > ~/.config/nix-config/vars.nix <<'EOF'
 {
