@@ -109,6 +109,13 @@ Not handled by this repo, do once yourself:
   package here targets `aarch64-darwin` directly. Install it
   (`softwareupdate --install-rosetta --agree-to-license`) only if something
   later needs an Intel-only binary.
+- **Raycast's `⌘Space` hotkey**: Nix only installs the app bundle, it can't
+  run first-launch onboarding or touch macOS's own keybindings. Launch
+  Raycast once (Launchpad, or `open -a Raycast`) and let onboarding take
+  over `⌘Space` from Spotlight; if it doesn't ask, uncheck Spotlight's
+  shortcut yourself in System Settings > Keyboard > Keyboard Shortcuts >
+  Spotlight, then set `⌘Space` in Raycast > Settings > General > Raycast
+  Hotkey.
 
 ## Finding packages
 
