@@ -8,8 +8,8 @@
 vars_override := "--override-input vars path:" + env_var("HOME") + "/.config/nix-config/vars.nix"
 
 # Apply the configuration
-rebuild:
-    sudo darwin-rebuild switch --flake .#default {{ vars_override }}
+rebuild profile:
+    sudo darwin-rebuild switch --flake .#{{ profile }} {{ vars_override }}
 
 # Bump nixpkgs to tip, but only keep the bump if zed-editor (the one package
 # here big enough that a local compile actually matters) is already cached
@@ -23,7 +23,7 @@ update:
     set -euo pipefail
     cp flake.lock flake.lock.bak
     nix flake update
-    if nix build .#darwinConfigurations.default.pkgs.zed-editor {{ vars_override }} --dry-run 2>&1 | grep -q "will be built"; then
+    if nix build .#darwinConfigurations.personal.pkgs.zed-editor {{ vars_override }} --dry-run 2>&1 | grep -q "will be built"; then
         echo "zed-editor needs a local build at the new tip; leaving flake.lock as it was."
         mv flake.lock.bak flake.lock
         exit 1
@@ -35,8 +35,8 @@ update:
 # ready to pull. If something big (e.g. zed-editor) shows under "will be
 # built", either accept the local build or run `just undo-update` and try
 # again in a day.
-preview:
-    nix build .#darwinConfigurations.default.system {{ vars_override }} --dry-run
+preview profile:
+    nix build .#darwinConfigurations.{{ profile }}.system {{ vars_override }} --dry-run
 
 # Revert the last update (e.g. after keeping a bump you later regret): restores flake.lock
 undo-update:

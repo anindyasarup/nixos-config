@@ -35,6 +35,35 @@
       moduleArgs = {
         vars = varsValue;
       };
+
+      mkDarwin =
+        profileModules:
+        nix-darwin.lib.darwinSystem {
+          inherit system;
+          specialArgs = moduleArgs;
+          modules = [
+            ./modules/darwin.nix
+            nix-homebrew.darwinModules.nix-homebrew
+            {
+              nix-homebrew = {
+                enable = true;
+                user = username;
+              };
+            }
+            home-manager.darwinModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = moduleArgs;
+                backupFileExtension = "backup";
+                users.${username} = import ./modules/home;
+              };
+            }
+          ]
+          ++ profileModules;
+        };
+
     in
     {
       formatter.${system} = pkgs.nixfmt-tree;
@@ -46,29 +75,9 @@
         ];
       };
 
-      darwinConfigurations.default = nix-darwin.lib.darwinSystem {
-        inherit system;
-        specialArgs = moduleArgs;
-        modules = [
-          ./modules/darwin.nix
-          nix-homebrew.darwinModules.nix-homebrew
-          {
-            nix-homebrew = {
-              enable = true;
-              user = username;
-            };
-          }
-          home-manager.darwinModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              extraSpecialArgs = moduleArgs;
-              backupFileExtension = "backup";
-              users.${username} = import ./modules/home;
-            };
-          }
-        ];
+      darwinConfigurations = {
+        personal = mkDarwin [ ];
+        work = mkDarwin [ ./modules/work.nix ];
       };
     };
 }

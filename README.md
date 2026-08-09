@@ -8,26 +8,33 @@ usernames, hostnames, paths, or emails live in this repo.
 ## The one command that matters
 
 ```sh
-just rebuild        # = sudo darwin-rebuild switch --flake .#default <vars override>
+just rebuild personal   # = sudo darwin-rebuild switch --flake .#personal <vars override>
+just rebuild work       # same, with the work-only additions layered on
 ```
+
+The profile is a required argument, on purpose: there's no default to
+accidentally rebuild the wrong machine's configuration with.
 
 ## Layout
 
 - `flake.nix`: inputs (nixpkgs unstable, nix-darwin, home-manager), vars
-  resolution, `darwinConfigurations.default` output, plus a `devShells.default`
-  and `formatter` for editing this repo itself
+  resolution, the `darwinConfigurations.personal` / `.work` outputs, plus a
+  `devShells.default` and `formatter` for editing this repo itself
 - `modules/darwin.nix`: core system-level settings
 - `modules/system-defaults.nix`: `system.defaults.*` (dock, Finder, key
   repeat, screenshots, etc.)
 - `modules/homebrew.nix`: the narrow, closed Homebrew exception (see
   `CLAUDE.md`)
+- `modules/work.nix`: purely additive work-machine extras, across both the
+  darwin and home-manager layers (imports `modules/home/work.nix`); the
+  `personal` profile is the shared base with nothing layered on
 - `modules/home/`: the home-manager layer, split by concern:
   `packages.nix` (CLI + GUI), `git.nix` (git/ssh), `shell.nix` (login shell,
   prompt, direnv), `cli-tools.nix` (fzf/bat/yazi/btop), `ghostty.nix`,
   `neovim.nix`, `zed.nix`, `default.nix` (manifest)
 - `.zed/settings.json`: project-local Zed settings (currently just nixd's
   `options` config, pointed at this flake's own
-  `darwinConfigurations.default.options` for hover/autocomplete on
+  `darwinConfigurations.personal.options` for hover/autocomplete on
   nix-darwin options); layered on top of the global
   `programs.zed-editor.userSettings` in `modules/home/zed.nix`
 - `vars-required.nix`: tracked stub (just a `throw`) that the `vars` flake
@@ -78,7 +85,8 @@ EOF
 $EDITOR ~/.config/nix-config/vars.nix
 
 # 4. First activation (darwin-rebuild isn't on PATH yet, run it via `nix run`).
-sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#default \
+# Swap `personal` for `work` on a work machine.
+sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#personal \
   --override-input vars path:$HOME/.config/nix-config/vars.nix
 
 # 5. Open a new terminal, cd back into this repo, and allow direnv. `just`
@@ -93,29 +101,84 @@ Command Line Tools stub for good.
 
 Not handled by this repo, do once yourself:
 
-- **SSH keys**, for `git push`/private clones: `modules/home/git.nix` only
-  points ssh at `~/.ssh/id_ed25519_personal` and `~/.ssh/id_ed25519_work`
-  plus Keychain, it doesn't generate either. `ssh-keygen -t ed25519 -C
-  "you@example.com" -f ~/.ssh/id_ed25519_personal` (repeat with `_work` and
-  your work email), add each public key to its respective GitHub account,
-  then `ssh-add --apple-use-keychain ~/.ssh/id_ed25519_personal` (and the
-  same for `_work`) once so both passphrases land in Keychain for
-  `UseKeychain` to find. Repos cloned under `~/Development/personal/` or
-  `~/Development/work/` automatically get the matching identity and key;
-  neither is a default, so repos outside both directories get no identity
-  or key from this config.
-- **Rosetta 2**: not required by this flake as configured. nix-homebrew's
-  `enableRosetta` defaults to false and isn't set in `flake.nix`, and every
-  package here targets `aarch64-darwin` directly. Install it
-  (`softwareupdate --install-rosetta --agree-to-license`) only if something
-  later needs an Intel-only binary.
-- **Raycast's `⌘Space` hotkey**: Nix only installs the app bundle, it can't
-  run first-launch onboarding or touch macOS's own keybindings. Launch
-  Raycast once (Launchpad, or `open -a Raycast`) and let onboarding take
-  over `⌘Space` from Spotlight; if it doesn't ask, uncheck Spotlight's
-  shortcut yourself in System Settings > Keyboard > Keyboard Shortcuts >
-  Spotlight, then set `⌘Space` in Raycast > Settings > General > Raycast
-  Hotkey.
+### SSH keys, for `git push` and private clones
+
+`modules/home/git.nix` points ssh at `~/.ssh/id_ed25519_personal` and
+`~/.ssh/id_ed25519_work` and wires them to Keychain, but it doesn't generate
+either. Per account:
+
+```sh
+# 1. Generate the key. Repeat with _work and your work email.
+ssh-keygen -t ed25519 -C "you@example.com" -f ~/.ssh/id_ed25519_personal
+
+# 2. Load it into the agent once, so the passphrase lands in Keychain where
+# the config's `UseKeychain` can find it later. Repeat for _work.
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519_personal
+
+# 3. Copy the PUBLIC key and add it to the matching GitHub account at
+# https://github.com/settings/keys. Repeat for _work.
+pbcopy < ~/.ssh/id_ed25519_personal.pub
+
+# 4. Verify each alias authenticates as the right account.
+ssh -T git@github.com-personal
+ssh -T git@github.com-work
+```
+
+Step 4 should greet you with the corresponding username. That works because
+`modules/home/git.nix` defines two SSH `Host` aliases, `github.com-personal`
+and `github.com-work`, each pinned to exactly one key.
+
+Which one a repo uses is decided purely by where it lives on disk:
+
+| Repo location             | Identity + key                  |
+| ------------------------- | ------------------------------- |
+| `~/Development/personal/` | personal email, `_personal` key |
+| `~/Development/work/`     | work email, `_work` key         |
+| anywhere else             | none at all                     |
+
+Neither is a default, so a repo outside both trees gets no git identity and
+no key. That's deliberate: it fails loudly instead of quietly committing
+under the wrong name. Clone with the normal `git@github.com:` URL; the
+config rewrites it to the right alias based on the directory.
+
+### `gh` authentication, per directory
+
+The SSH keys above cover `git` itself, but not the `gh` CLI, which uses its
+own token. `gh auth switch` is global, so it can't follow the same
+directory split. Instead, store each account's token in Keychain and let
+direnv export the right one:
+
+```sh
+# 1. Log in as the account you want, then stash its token in Keychain.
+# `-U` updates an existing entry instead of erroring; use it when rotating.
+gh auth login
+security add-generic-password -U -a "$USER" -s "gh-personal" -w "$(gh auth token)"
+
+# 2. Repeat for the work account, under the service name "gh-work".
+
+# 3. One .envrc per tree, OUTSIDE this repo, so `gh` picks the right token
+# from the directory alone. `gh` checks GH_TOKEN before its own config.
+echo 'export GH_TOKEN=$(security find-generic-password -s "gh-personal" -w)' \
+  > ~/Development/personal/.envrc
+echo 'export GH_TOKEN=$(security find-generic-password -s "gh-work" -w)' \
+  > ~/Development/work/.envrc
+
+direnv allow ~/Development/personal
+direnv allow ~/Development/work
+```
+
+Verify with `gh auth status` inside each tree: it should report the matching
+account. These `.envrc` files sit above the repos they apply to and are
+never tracked here.
+
+### Raycast's `⌘Space` hotkey
+
+Nix only installs the app bundle, it can't run first-launch onboarding or
+touch macOS's own keybindings. Launch Raycast once (Launchpad, or `open -a
+Raycast`) and let onboarding take over `⌘Space` from Spotlight; if it
+doesn't ask, uncheck Spotlight's shortcut yourself in System Settings >
+Keyboard > Keyboard Shortcuts > Spotlight, then set `⌘Space` in Raycast >
+Settings > General > Raycast Hotkey.
 
 ## Finding packages
 
@@ -140,17 +203,12 @@ exactly as it was and the recipe exits non-zero, no local compile ever
 happens as a side effect of running it. Nothing downloads until the next
 `just rebuild` either way.
 
-For anything beyond zed-editor, `just preview` remains the authoritative,
-whole-closure check: it lists what "will be fetched" (prebuilt, cheap)
-versus what "will be built" (local compile). If `just update` succeeded but
-`just preview` still shows something else under "will be built", that's a
-different package Hydra hasn't cached yet; hold it back with `just
-undo-update` and try again in a day.
-
-## Python
-
-Python is owned by `uv`, not nixpkgs: `uv python install`, `uv venv`, `uv add`.
-Only the `uv` binary itself comes from Nix.
+For anything beyond zed-editor, `just preview <profile>` remains the
+authoritative, whole-closure check: it lists what "will be fetched"
+(prebuilt, cheap) versus what "will be built" (local compile). If `just
+update` succeeded but `just preview` still shows something else under "will
+be built", that's a different package Hydra hasn't cached yet; hold it back
+with `just undo-update` and try again in a day.
 
 ## Secrets
 
@@ -159,9 +217,8 @@ macOS Keychain or per-project gitignored `.envrc` files via direnv.
 
 ## Homebrew
 
-Removed in 2026-07, then reintroduced narrowly for the handful of macOS apps
-nix can't install directly (vendor-signed installer + system extension,
-currently just Mullvad VPN). See `CLAUDE.md` for what's allowed and why.
+Used narrowly for apps nix can't install directly. See `CLAUDE.md` for
+what's allowed and why.
 
 ## Privacy design
 

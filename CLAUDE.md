@@ -16,26 +16,36 @@ narrow, closed set of macOS software nix structurally cannot install (see
 build, not notarized), the fallback is a direct download from the vendor,
 not Homebrew.
 
-## Homebrew: narrow, closed exception
+## Homebrew: narrow exception
 
 Homebrew was fully removed (2026-07) and stays removed as the general
 package manager. It comes back only through nix-darwin's declarative
 `homebrew.*` module (`modules/homebrew.nix`), never an ad hoc `brew install`
 or `brew tap` outside of what's declared there.
 
-What justifies using it is the install mechanism, not availability.
-"It's not in nixpkgs" or "it's awkward to package" doesn't clear the bar:
-the default for that is still a vendor direct download, as above. Homebrew
-is for software that needs a vendor-signed installer plus a macOS
-system/network/kernel extension going through Apple's extension-approval
-flow, something nix can't do. It's the same reason nixpkgs marks
-`mullvad-vpn` `badPlatforms` for Darwin.
+Two things justify a cask, and nothing else does:
 
-The whitelist is closed: Mullvad VPN (`homebrew.casks = [ "mullvad-vpn" ]`)
-is the only entry today. Don't add a tap, formula, or cask because it seems
-convenient in the moment. If something new looks like it needs Homebrew,
-ask the user to add it here first. This file is the source of truth, not
-whatever seems reasonable in the moment.
+1. **The install mechanism.** Software needing a vendor-signed installer
+   plus a macOS system/network/kernel extension through Apple's
+   extension-approval flow, which nix structurally can't do. Same reason
+   nixpkgs marks `mullvad-vpn` `badPlatforms` for Darwin.
+2. **A GUI app genuinely absent from nixpkgs on `aarch64-darwin`**, where
+   the only other option is re-downloading a `.dmg` by hand for every
+   update. `brew upgrade` keeping it current is worth more than the purity
+   of a manual download here.
+
+Reason 2 is a real relaxation of the original rule (which sent this case to
+a vendor direct download), so keep it honest: check nixpkgs first and only
+fall back to a cask when the package truly isn't there for
+`aarch64-darwin`. "Awkward to package" or "easier via brew" still doesn't
+clear the bar for something nixpkgs already ships.
+
+Current casks (`modules/homebrew.nix`): `focusrite-control` (reason 1),
+`claude` (reason 2), `mullvad-vpn` (reason 1). Don't add a tap, formula, or
+cask because it seems convenient in the moment; if something new looks like
+it needs Homebrew, check it against the two reasons above and ask the user
+before adding. This file is the source of truth, not whatever seems
+reasonable in the moment.
 
 Homebrew itself (the `brew` binary) is bootstrapped declaratively too,
 through the `nix-homebrew` flake input (wired in `flake.nix`). nix-darwin's
@@ -47,15 +57,16 @@ separate manual `brew.sh` step.
 ## Commands
 
 ```sh
-just rebuild   # apply config = sudo darwin-rebuild switch --flake .#default <vars override>
-just update    # bump flake inputs (then `just rebuild` to apply)
-just check     # evaluate without applying
+just rebuild personal   # apply = sudo darwin-rebuild switch --flake .#personal <vars override>
+just rebuild work       # same, with the work profile's additions layered on
+just update             # bump flake inputs (then `just rebuild` to apply)
+just check              # evaluate without applying
 ```
 
 Build without activating (no sudo; use this to verify changes):
 
 ```sh
-nix build .#darwinConfigurations.default.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
+nix build .#darwinConfigurations.personal.system --override-input vars path:$HOME/.config/nix-config/vars.nix --no-link
 ```
 
 The `--override-input vars ...` flag is required everywhere, not optional
@@ -78,10 +89,34 @@ email may ever appear in tracked files.
 - Modules receive it as the `vars` arg (via `specialArgs` /
   `extraSpecialArgs`). Use `vars.username`, `vars.homeDirectory`, etc.
   Never literals.
-- The darwin configuration is named `default` (not the hostname) on purpose.
+- The darwin configurations are named by role (`personal`, `work`), never by
+  hostname.
 - Commits must be authored with the GitHub noreply address; the account has
   "block command line pushes that expose my email" enabled, so a real-email
   commit will be rejected at push time.
+
+## Machine profiles
+
+`flake.nix` exposes two outputs, both built from one `mkDarwin` helper:
+`personal` (the shared base) and `work` (that base plus
+`modules/work.nix`). The work profile is strictly additive:
+`modules/work.nix` only appends to list options (`homebrew.casks`,
+`home.packages` via `modules/home/work.nix`), which the module system merges
+onto the base rather than replacing, so `modules/home/packages.nix` and
+`modules/homebrew.nix` stay machine-agnostic and nothing work-specific leaks
+into a personal rebuild.
+
+Which machine you're on is a build-time choice, deliberately not a field in
+`vars.nix`: the profile isn't identity, and keeping it out means both
+machines share one `vars.nix` schema. Anything work-only that *is* identity
+(git name/email) already lives in `vars.git.work` and is selected by
+directory, not by profile.
+
+`just rebuild` and `just preview` both take the profile as a **required**
+argument with no default, so neither can silently rebuild the wrong
+machine's configuration. `just update`'s internal zed-editor cache probe
+hardcodes `personal`, which is fine: the probe only reads `.pkgs`, which is
+the same package set for both profiles.
 
 ## Non-obvious constraints
 
@@ -144,6 +179,11 @@ email may ever appear in tracked files.
   otherwise it can try both keys and authenticate as the wrong account.
   Both aliases set `HostKeyAlias = "github.com"` to share one `known_hosts`
   entry instead of prompting twice.
+- `core.hooksPath` (`modules/home/git.nix`) replaces `.git/hooks` rather than
+  adding to it, so the global gitleaks `pre-commit` has to `exec` the
+  project's own hook or it silently kills it. Only `pre-commit` is covered,
+  and a repo-local `core.hooksPath` (husky) still wins over the global one:
+  `docs/adr/0011-chained-git-pre-commit-hook.md`.
 - `bump-flake.yaml`'s `cron: "0 16 * * *"` targets 2am Melbourne time at
   UTC+10 (AEST). GitHub Actions schedules are fixed UTC with no timezone
   awareness, so during Melbourne's daylight saving (AEDT, UTC+11, roughly

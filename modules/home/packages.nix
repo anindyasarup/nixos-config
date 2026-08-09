@@ -6,9 +6,7 @@
 {
   home.packages = with pkgs; [
     claude-code
-    pnpm
     osv-scanner
-    git-credential-manager
     gh
     fd
     ripgrep

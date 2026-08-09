@@ -14,6 +14,7 @@
     direnv = {
       enable = true;
       nix-direnv.enable = true;
+      config.global.hide_env_diff = true;
       stdlib = ''
         : "''${XDG_CACHE_HOME:=$HOME/.cache}"
         declare -A direnv_layout_dirs
