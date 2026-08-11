@@ -79,6 +79,9 @@ cat > ~/.config/nix-config/vars.nix <<'EOF'
 EOF
 ```
 
+Add an optional `certificateFiles = [ "/path/to/corp-ca.pem" ];` field to trust
+extra CA certificates (e.g. a corporate MITM proxy) system-wide.
+
 **4. First activation.** `darwin-rebuild` isn't on PATH yet, so run it via
 `nix run`. Swap `personal` for `work` on a work machine.
 

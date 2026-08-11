@@ -10,9 +10,25 @@
       pkgs.nixd
       pkgs.nixfmt
     ];
-    extensions = [ "nix" ];
+    extensions = [
+      "nix"
+      "toml"
+      "rumdl"
+    ];
     userSettings = {
-      mouse_wheel_zoom = true;
+      terminal = {
+        shell = {
+          with_arguments = {
+            program = "${pkgs.bashInteractive}/bin/bash";
+            args = [ "-l" ];
+          };
+        };
+      };
+      autosave = {
+        after_delay = {
+          milliseconds = 500;
+        };
+      };
       telemetry = {
         diagnostics = false;
         metrics = false;

@@ -22,8 +22,13 @@
 
   fonts.packages = [ pkgs.nerd-fonts.jetbrains-mono ];
 
-  security.pam.services.sudo_local.touchIdAuth = true;
-  security.pam.services.sudo_local.reattach = false;
+  security = {
+    pki.certificateFiles = vars.certificateFiles or [ ];
+    pam.services.sudo_local = {
+      touchIdAuth = true;
+      reattach = false;
+    };
+  };
 
   system.stateVersion = 6;
 }
