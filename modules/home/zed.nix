@@ -14,6 +14,7 @@
       "nix"
       "toml"
       "rumdl"
+      "oxc"
     ];
     userSettings = {
       terminal = {
