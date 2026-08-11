@@ -29,23 +29,31 @@ Two things justify a cask, and nothing else does:
    plus a macOS system/network/kernel extension through Apple's
    extension-approval flow, which nix structurally can't do. Same reason
    nixpkgs marks `mullvad-vpn` `badPlatforms` for Darwin.
-2. **A GUI app genuinely absent from nixpkgs on `aarch64-darwin`**, where
-   the only other option is re-downloading a `.dmg` by hand for every
-   update. `brew upgrade` keeping it current is worth more than the purity
-   of a manual download here.
+2. **A GUI app nixpkgs can't keep genuinely usable on `aarch64-darwin`**,
+   whether that's outright absence or a packaging shape that structurally
+   can't stay current (e.g. a build pinned to one upstream-hosted version,
+   where the vendor's CDN purges old versions faster than the flake gets
+   bumped). Either way the only other option is re-downloading/re-pinning
+   by hand for every update. `brew upgrade` keeping it current is worth
+   more than the purity of a manual download or a stale, broken pin here.
 
 Reason 2 is a real relaxation of the original rule (which sent this case to
 a vendor direct download), so keep it honest: check nixpkgs first and only
 fall back to a cask when the package truly isn't there for
-`aarch64-darwin`. "Awkward to package" or "easier via brew" still doesn't
-clear the bar for something nixpkgs already ships.
+`aarch64-darwin`, or when it's there but structurally can't stay
+functional (see `whatsapp` below). "Awkward to package" or "easier via
+brew" still doesn't clear the bar for something nixpkgs already ships and
+keeps working.
 
 Current casks (`modules/homebrew.nix`): `focusrite-control` (reason 1),
-`claude` (reason 2), `mullvad-vpn` (reason 1). Don't add a tap, formula, or
-cask because it seems convenient in the moment; if something new looks like
-it needs Homebrew, check it against the two reasons above and ask the user
-before adding. This file is the source of truth, not whatever seems
-reasonable in the moment.
+`claude` (reason 2), `mullvad-vpn` (reason 1), `whatsapp` (reason 2:
+nixpkgs' `whatsapp-for-mac` fetches an exact pinned version straight from
+WhatsApp's own CDN, which purges old versions faster than the flake gets
+bumped, breaking both the build and login on stale clients). Don't add a
+tap, formula, or cask because it seems convenient in the moment; if
+something new looks like it needs Homebrew, check it against the two
+reasons above and ask the user before adding. This file is the source of
+truth, not whatever seems reasonable in the moment.
 
 Homebrew itself (the `brew` binary) is bootstrapped declaratively too,
 through the `nix-homebrew` flake input (wired in `flake.nix`). nix-darwin's
