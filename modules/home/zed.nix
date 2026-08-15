@@ -18,6 +18,20 @@
       "zig"
     ];
     userSettings = {
+      languages = {
+        Nix = {
+          language_servers = [
+            "nixd"
+            "!nil"
+          ];
+          formatter = {
+            external = {
+              command = "nixfmt";
+              arguments = [ ];
+            };
+          };
+        };
+      };
       terminal = {
         shell = {
           with_arguments = {

@@ -177,13 +177,16 @@ the same package set for both profiles.
   ("Atom One Dark"), `modules/home/neovim.nix` (`onedark-nvim`), and
   `modules/home/zed.nix` (One Light/One Dark): check all three when
   changing the theme.
-- Zed settings live in two layers: `modules/home/zed.nix`'s
-  `programs.zed-editor.userSettings` (per-machine; `mutableUserSettings`
-  jq-merges these onto whatever Zed's UI already wrote to settings.json on
-  activation, rather than overwriting it) versus `.zed/settings.json`
-  (per-project, e.g. this repo's own `darwinConfigurations.default` option
-  completion). `extraPackages` includes `nixfmt` so Zed's format-on-save
-  stays in sync with this repo's own `nix fmt` (`nixfmt-tree`).
+- Zed settings live in `modules/home/zed.nix`'s
+  `programs.zed-editor.userSettings` (`mutableUserSettings` jq-merges these
+  onto whatever Zed's UI already wrote to settings.json on activation,
+  rather than overwriting it), applied globally rather than per-project.
+  `extraPackages` includes `nixfmt` so Zed's format-on-save stays in sync
+  with this repo's own `nix fmt` (`nixfmt-tree`). There is no
+  `.zed/settings.json` in this repo: nixd's darwin-options expr for
+  in-editor option completion (which only makes sense scoped to this
+  repo's own `darwinConfigurations.personal.options`) was dropped along
+  with it rather than kept project-local.
 - `modules/home/git.nix` picks the git identity and SSH key purely by
   directory, via two `programs.git.includes`' `gitdir:` conditions
   (`~/Development/personal/` / `~/Development/work/`); neither is a
