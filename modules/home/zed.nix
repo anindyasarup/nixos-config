@@ -15,6 +15,7 @@
       "toml"
       "rumdl"
       "oxc"
+      "zig"
     ];
     userSettings = {
       terminal = {
