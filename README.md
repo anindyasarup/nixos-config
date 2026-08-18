@@ -199,8 +199,13 @@ the macOS Keychain, or in per-project gitignored `.envrc` files via direnv.
 
 ## Homebrew
 
-Used narrowly, for apps nix can't install directly. `CLAUDE.md` has the rules
-for what qualifies.
+Used narrowly, for apps nix can't install directly: either the install needs
+a vendor-signed installer or kernel extension nix structurally can't do, or
+nixpkgs can't keep the app usable on `aarch64-darwin`. WhatsApp is the second
+case: nixpkgs pins an exact build fetched straight from WhatsApp's own CDN,
+which purges old versions faster than the flake gets bumped, breaking both
+the build and login on stale clients, so it comes from the `whatsapp` cask
+instead.
 
 ## Privacy design
 
