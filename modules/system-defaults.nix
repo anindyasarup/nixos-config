@@ -27,6 +27,7 @@
     CustomUserPreferences = {
       "com.apple.AdLib".allowApplePersonalizedAdvertising = false;
       NSGlobalDomain.NSSmartReplyEnabled = false;
+      "com.apple.symbolichotkeys".AppleSymbolicHotKeys."64".enabled = false;
     };
   };
 }

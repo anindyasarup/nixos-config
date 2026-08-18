@@ -164,11 +164,9 @@ the repos they apply to and are never tracked here. Verify with
 
 ### Raycast's `⌘Space`
 
-Nix installs the app bundle but can't run first-launch onboarding or touch
-macOS keybindings. Launch Raycast once and let onboarding take `⌘Space` from
-Spotlight. If it doesn't ask, uncheck Spotlight's shortcut in System
-Settings > Keyboard > Keyboard Shortcuts > Spotlight, then set `⌘Space` in
-Raycast > Settings > General > Raycast Hotkey.
+Spotlight's `⌘Space` is disabled declaratively (`modules/system-defaults.nix`),
+but Nix can't touch Raycast's own keybindings. Launch Raycast once, then set
+`⌘Space` in Raycast > Settings > General > Raycast Hotkey.
 
 ## Finding packages
 

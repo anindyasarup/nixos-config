@@ -209,3 +209,10 @@ the same package set for both profiles.
   awareness, so during Melbourne's daylight saving (AEDT, UTC+11, roughly
   Oct-Apr) this actually fires at 3am local time; there's no fix for that
   short of maintaining two seasonal cron lines.
+- `system.defaults.CustomUserPreferences."com.apple.symbolichotkeys".AppleSymbolicHotKeys."64".enabled = false`
+  (`modules/system-defaults.nix`) disables Spotlight's `⌘Space` so Raycast's
+  own `⌘Space` binding (see the README's Raycast section) doesn't conflict.
+  `defaults write` replaces a domain key's value wholesale rather than
+  merging into it, so if more `AppleSymbolicHotKeys` entries are ever added
+  here, key `64` must stay alongside them in the same attrset or it reverts
+  to enabled.
