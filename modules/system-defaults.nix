@@ -5,8 +5,6 @@
 
 {
   system.defaults = {
-    dock.autohide = true;
-
     screencapture.location = "${vars.homeDirectory}/Pictures/Screenshots";
 
     NSGlobalDomain = {

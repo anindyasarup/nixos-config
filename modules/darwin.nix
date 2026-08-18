@@ -7,6 +7,7 @@
 {
   imports = [
     ./system-defaults.nix
+    ./dock.nix
     ./homebrew.nix
     ./nix-gc.nix
   ];
