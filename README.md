@@ -45,7 +45,7 @@ readable as a reference second, not a general-purpose installer.
 Use GitHub's "Download ZIP", or:
 
 ```sh
-curl -L <repo-url>/archive/refs/heads/main.tar.gz | tar xz
+curl -L https://github.com/anindyasarup/nixos-config/archive/refs/heads/main.tar.gz | tar xz
 ```
 
 **2. Install Nix.** Precompiled, no compile step. Open a new terminal
