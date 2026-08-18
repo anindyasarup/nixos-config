@@ -24,6 +24,8 @@
       FXPreferredViewStyle = "Nlsv";
     };
 
+    controlcenter.BatteryShowPercentage = true;
+
     CustomUserPreferences = {
       "com.apple.AdLib".allowApplePersonalizedAdvertising = false;
       NSGlobalDomain.NSSmartReplyEnabled = false;
