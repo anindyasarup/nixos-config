@@ -65,6 +65,7 @@ cat > ~/.config/nix-config/vars.nix <<'EOF'
   username = "youruser";
   homeDirectory = "/Users/youruser";
   system = "aarch64-darwin";
+  certificateFiles = [ "/usr/local/etc/certificates/<corp-ca>.pem" ];
   git = {
     personal = {
       name = "Your Name";
@@ -79,8 +80,10 @@ cat > ~/.config/nix-config/vars.nix <<'EOF'
 EOF
 ```
 
-Add an optional `certificateFiles = [ "/path/to/corp-ca.pem" ];` field to trust
-extra CA certificates (e.g. a corporate MITM proxy) system-wide.
+`certificateFiles` trusts extra CA certificates (e.g. a corporate MITM
+proxy) system-wide; drop the `.pem` files themselves in
+`/usr/local/etc/certificates/`, unmanaged by nix-darwin and outside the
+repo. Leave empty if no certs.
 
 **4. First activation.** `darwin-rebuild` isn't on PATH yet, so run it via
 `nix run`. Swap `personal` for `work` on a work machine.
