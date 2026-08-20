@@ -17,5 +17,6 @@
     zoom-us
     jetbrains-toolbox
     brave
+    dbeaver-bin
   ];
 }
