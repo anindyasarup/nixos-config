@@ -15,8 +15,7 @@
     discord
     raycast
     zoom-us
-    jetbrains-toolbox
     brave
-    dbeaver-bin
+    jetbrains.datagrip
   ];
 }
