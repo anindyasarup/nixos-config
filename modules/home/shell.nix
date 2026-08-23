@@ -9,7 +9,10 @@
 
     bash.enable = true;
 
-    starship.enable = true;
+    starship = {
+      enable = true;
+      settings.command_timeout = 1500;
+    };
 
     direnv = {
       enable = true;
