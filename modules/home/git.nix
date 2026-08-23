@@ -8,7 +8,8 @@
 
 let
   hookName = "pre-commit";
-  hooksSubdir = "git/hooks";
+  templateSubdir = "git/template";
+  hooksSubdir = "${templateSubdir}/hooks";
 
   globalChecks = [
     {
@@ -45,7 +46,7 @@ in
     enable = true;
     settings = {
       init.defaultBranch = "main";
-      core.hooksPath = "${config.xdg.configHome}/${hooksSubdir}";
+      init.templateDir = "${config.xdg.configHome}/${templateSubdir}";
       url."git@github.com:".pushInsteadOf = "https://github.com/";
 
       commit.verbose = true;
