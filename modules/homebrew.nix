@@ -6,7 +6,6 @@ _:
     onActivation.cleanup = "check";
     casks = [
       "focusrite-control"
-      "mullvad-vpn"
       "claude"
       "whatsapp"
     ];
