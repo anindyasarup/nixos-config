@@ -6,6 +6,7 @@
 {
   home.packages = with pkgs; [
     claude-code
+    pi-coding-agent
     osv-scanner
     gh
     fd
