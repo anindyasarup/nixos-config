@@ -13,6 +13,7 @@
     ripgrep
     tree
 
+    bruno
     discord
     raycast
     zoom-us
