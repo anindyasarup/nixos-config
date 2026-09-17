@@ -21,12 +21,12 @@
 
   outputs =
     {
-      self,
       nixpkgs,
       nix-darwin,
       home-manager,
       nix-homebrew,
       vars,
+      ...
     }:
     let
       varsValue = import vars;
@@ -36,12 +36,20 @@
         vars = varsValue;
       };
 
-      mkDarwin =
-        import ./modules/mk-darwin.nix { inherit nix-darwin home-manager nix-homebrew; }
-          { inherit system username moduleArgs; };
+      mkDarwin = import ./modules/mk-darwin.nix { inherit nix-darwin home-manager nix-homebrew; } {
+        inherit system username moduleArgs;
+      };
 
       lefthookConfig = (pkgs.formats.yaml { }).generate "lefthook.yml" {
-        pre-commit.commands.betterleaks.run = "betterleaks git --pre-commit --staged";
+        pre-commit.commands = {
+          betterleaks.run = "betterleaks git --pre-commit --staged";
+          statix.run = "statix check";
+          deadnix.run = "deadnix --fail";
+          nixfmt = {
+            glob = "*.nix";
+            run = "treefmt --fail-on-change";
+          };
+        };
       };
     in
     {
@@ -49,6 +57,8 @@
       devShells.${system}.default = pkgs.mkShellNoCC {
         packages = [
           pkgs.statix
+          pkgs.deadnix
+          pkgs.nixfmt-tree
           pkgs.just
           pkgs.uv
           pkgs.lefthook
