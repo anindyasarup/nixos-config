@@ -41,13 +41,20 @@
       };
 
       lefthookConfig = (pkgs.formats.yaml { }).generate ".lefthook.yaml" {
-        pre-commit.commands = {
-          betterleaks.run = "betterleaks git --pre-commit --staged";
-          statix.run = "statix check";
-          deadnix.run = "deadnix --fail";
-          nixfmt = {
-            glob = "*.nix";
-            run = "treefmt --fail-on-change";
+        pre-commit = {
+          parallel = true;
+          skip = [
+            "merge"
+            "rebase"
+          ];
+          commands = {
+            betterleaks.run = "betterleaks git --pre-commit --staged";
+            statix.run = "statix check";
+            deadnix.run = "deadnix --fail";
+            nixfmt = {
+              glob = "*.nix";
+              run = "treefmt --fail-on-change";
+            };
           };
         };
       };
@@ -65,7 +72,7 @@
           pkgs.betterleaks
         ];
         shellHook = ''
-          ln -sf ${lefthookConfig} lefthook.yml
+          ln -sf ${lefthookConfig} .lefthook.yaml
           lefthook install
         '';
       };
