@@ -8,6 +8,7 @@ _:
       "focusrite-control"
       "claude"
       "whatsapp"
+      "brave-browser"
     ];
   };
 }
