@@ -3,7 +3,7 @@ _:
 {
   homebrew = {
     enable = true;
-    onActivation.cleanup = "check";
+    onActivation.cleanup = "uninstall";
     casks = [
       "focusrite-control"
       "claude"
