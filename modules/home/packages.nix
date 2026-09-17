@@ -17,7 +17,6 @@
     discord
     raycast
     zoom-us
-    brave
     jetbrains.datagrip
   ];
 }

@@ -49,7 +49,12 @@ Current casks (`modules/homebrew.nix`): `focusrite-control` (reason 1),
 `claude` (reason 2), `mullvad-vpn` (reason 1), `whatsapp` (reason 2:
 nixpkgs' `whatsapp-for-mac` fetches an exact pinned version straight from
 WhatsApp's own CDN, which purges old versions faster than the flake gets
-bumped, breaking both the build and login on stale clients). Don't add a
+bumped, breaking both the build and login on stale clients), `brave-browser`
+(reason 2: nixpkgs' `brave` repeatedly ships nixpkgs revisions where the
+pinned `.dmg`/`.zip` fetch from Brave's own release CDN fails to unpack on
+`aarch64-darwin`, breaking `just rebuild` for days at a time until a later
+nixpkgs commit rolls the version forward again; moved 2026-09-17 after
+multiple consecutive daily `automated/flake-update` CI failures). Don't add a
 tap, formula, or cask because it seems convenient in the moment; if
 something new looks like it needs Homebrew, check it against the two
 reasons above and ask the user before adding. This file is the source of
