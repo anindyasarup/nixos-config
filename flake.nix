@@ -40,7 +40,7 @@
         inherit system username moduleArgs;
       };
 
-      lefthookConfig = (pkgs.formats.yaml { }).generate "lefthook.yml" {
+      lefthookConfig = (pkgs.formats.yaml { }).generate ".lefthook.yaml" {
         pre-commit.commands = {
           betterleaks.run = "betterleaks git --pre-commit --staged";
           statix.run = "statix check";

@@ -1,3 +1,4 @@
 result
 .direnv/
 /lefthook.yml
+/.lefthook.yaml
