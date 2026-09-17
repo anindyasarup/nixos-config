@@ -64,6 +64,9 @@
           ++ profileModules;
         };
 
+      lefthookConfig = (pkgs.formats.yaml { }).generate "lefthook.yml" {
+        pre-commit.commands.betterleaks.run = "betterleaks git --pre-commit --staged";
+      };
     in
     {
       formatter.${system} = pkgs.nixfmt-tree;
@@ -72,7 +75,13 @@
           pkgs.statix
           pkgs.just
           pkgs.uv
+          pkgs.lefthook
+          pkgs.betterleaks
         ];
+        shellHook = ''
+          ln -sf ${lefthookConfig} lefthook.yml
+          lefthook install
+        '';
       };
 
       darwinConfigurations = {
