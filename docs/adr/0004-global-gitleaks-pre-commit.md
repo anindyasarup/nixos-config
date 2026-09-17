@@ -1,6 +1,6 @@
 # 4. Secret scanning as a global git hook, not per-repo
 
-Status: Accepted
+Status: Superseded by ADR 0012
 
 Files: modules/home/git.nix
 

@@ -1,6 +1,6 @@
 # 11. The global pre-commit hook chains to the project's own
 
-Status: Accepted
+Status: Superseded by ADR 0012
 
 Files: `modules/home/git.nix`
 
