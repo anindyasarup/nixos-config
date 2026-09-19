@@ -16,6 +16,7 @@
       "rumdl"
       "oxc"
       "zig"
+      "typst"
     ];
     userSettings = {
       languages = {
@@ -65,6 +66,7 @@
       format_on_save = "on";
       relative_line_numbers = "enabled";
     };
+    mutableUserKeymaps = false;
     userKeymaps = [
       {
         context = "Workspace";
