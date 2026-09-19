@@ -58,7 +58,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -B automated/flake-update
           git add flake.lock
-          git commit -m "flake.lock: bump nixpkgs"
+          git commit -n -m "flake.lock: bump nixpkgs"
 
       - name: Push branch
         if: steps.diff.outputs.changed == 'true'
