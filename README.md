@@ -1,9 +1,8 @@
 # nixos-config
 
-Declarative config for an Apple Silicon Mac: system settings, packages, and
-development tooling, via nix-darwin + home-manager on Determinate Nix.
-Replaces Homebrew and asdf. Nothing personal is tracked here (no usernames,
-home paths, hostnames, or emails), so the repo is safe to publish.
+One declarative description of an Apple Silicon Mac: system settings, the
+packages installed on it, and the development environment. Built on
+nix-darwin and home-manager, running on Determinate Nix.
 
 ## Commands
 
@@ -17,8 +16,37 @@ home paths, hostnames, or emails), so the repo is safe to publish.
 | `just cleanup [keep]`                | Delete old generations and collect garbage       |
 | `just fmt` / `just lint`             | nixfmt, statix                                   |
 
-The profile is `personal` or `work`, and is required: there's no default to
-rebuild the wrong machine with. `work` is `personal` plus a few extras.
+`just` and the other repo tools live in the flake's devShell, so they appear
+on PATH through direnv once you're inside this directory.
+
+## Profiles
+
+The flake builds two configurations from one helper. `personal` is the base.
+`work` is that base plus `modules/work.nix`, which appends work-only
+packages (Slack, Postman, colima, docker) and pins a different set of dock
+apps.
+
+The profile argument is required on `just rebuild` and `just preview`, with
+no default, so neither can quietly build the wrong machine. The profile is
+a build-time choice and never appears in `vars.nix`, which lets both
+machines share one identity file.
+
+## Identity lives outside the repo
+
+Username, home path, and git names and emails go in
+`~/.config/nix-config/vars.nix`. `flake.nix` reads that file as an input
+named `vars`, supplied at every entry point with:
+
+```
+--override-input vars path:~/.config/nix-config/vars.nix
+```
+
+`.envrc`, the justfile, and CI all pass it, so you rarely type it yourself.
+Without the override, `vars` falls back to the tracked `vars-required.nix`,
+which throws. No placeholder gets substituted, evaluation stays pure, and
+there's no `--impure` anywhere. The configurations are named by role, so no
+hostname leaks in either. Reasoning in
+[`docs/adr/0001`](docs/adr/0001-vars-flake-input-override.md).
 
 ## Layout
 
@@ -27,9 +55,12 @@ flake.nix           inputs, the personal/work outputs, devShell, formatter
 justfile            the commands above
 vars-required.nix   stub the `vars` input falls back to; throws if not overridden
 modules/
+  mk-darwin.nix         the helper both profiles are built from
   darwin.nix            system-level settings
-  system-defaults.nix   dock, Finder, key repeat, screenshots
+  system-defaults.nix   Finder, key repeat, screenshots, privacy toggles
+  dock.nix              dock layout and behaviour
   homebrew.nix          the few casks nix can't install
+  nix-gc.nix            weekly garbage collection via launchd
   work.nix              work-only extras, layered on top of personal
   home/                 home-manager: packages, git, shell, editors, terminal
 docs/adr/           design decisions, with the reasoning
@@ -37,8 +68,8 @@ docs/adr/           design decisions, with the reasoning
 
 ## Bootstrap a fresh machine
 
-Built and run on macOS 26. It's a personal config first, written to be
-readable as a reference second, not a general-purpose installer.
+Built and run on macOS 26. This is my own machine's config, published so it
+can be read; it assumes you'll edit it before running it anywhere else.
 
 **1. Get the repo onto the machine without `git`.** A stock Mac's
 `/usr/bin/git` is an Xcode CLT stub that triggers an interactive install.
@@ -80,10 +111,10 @@ cat > ~/.config/nix-config/vars.nix <<'EOF'
 EOF
 ```
 
-`certificateFiles` trusts extra CA certificates (e.g. a corporate MITM
-proxy) system-wide; drop the `.pem` files themselves in
+`certificateFiles` trusts extra CA certificates (a corporate MITM proxy, for
+instance) system-wide. The `.pem` files themselves go in
 `/usr/local/etc/certificates/`, unmanaged by nix-darwin and outside the
-repo. Leave empty if no certs.
+repo. Leave the list empty if you have no such certs.
 
 **4. First activation.** `darwin-rebuild` isn't on PATH yet, so run it via
 `nix run`. Swap `personal` for `work` on a work machine.
@@ -93,15 +124,14 @@ sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake .#personal \
   --override-input vars path:$HOME/.config/nix-config/vars.nix
 ```
 
-**5. Open a new terminal and allow direnv.** `just` and `uv` live in the
-devShell, so they only appear on PATH inside this repo.
+**5. Open a new terminal and allow direnv.**
 
 ```sh
 direnv allow
 ```
 
-From here `just rebuild` takes over, and git comes from Nix rather than the
-Command Line Tools stub.
+From here `just rebuild` takes over, git comes from Nix, and the devShell's
+pre-commit hooks are installed.
 
 ## One-time setup this repo can't do
 
@@ -164,14 +194,15 @@ the repos they apply to and are never tracked here. Verify with
 
 ### Raycast's `⌘Space`
 
-Spotlight's `⌘Space` is disabled declaratively (`modules/system-defaults.nix`),
-but Nix can't touch Raycast's own keybindings. Launch Raycast once, then set
-`⌘Space` in Raycast > Settings > General > Raycast Hotkey.
+Spotlight's `⌘Space` is disabled declaratively
+(`modules/system-defaults.nix`), but Nix can't touch Raycast's own
+keybindings. Launch Raycast once, then set `⌘Space` in Raycast > Settings >
+General > Raycast Hotkey.
 
 ## Finding packages
 
-- Browse <https://search.nixos.org/packages> (channel: `unstable`). It works
-  on this Mac if its platforms include `aarch64-darwin`.
+- Browse <https://search.nixos.org/packages> (channel: `unstable`). A
+  package works on this Mac if its platforms include `aarch64-darwin`.
 - Try it with `nix shell nixpkgs#<name>`: a temporary shell with the package
   on PATH, gone when you exit.
 - Check build health at
@@ -183,39 +214,37 @@ but Nix can't touch Raycast's own keybindings. Launch Raycast once, then set
 
 `just update` bumps `flake.lock` to nixpkgs tip, then checks whether
 `zed-editor` (the only package here big enough for a local compile to hurt)
-is cached at that tip. If not, `flake.lock` is restored exactly as it was and
-the recipe exits non-zero. Nothing downloads until the next `just rebuild`.
+is cached at that tip. If it isn't, `flake.lock` is restored exactly as it
+was and the recipe exits non-zero. Nothing downloads until the next
+`just rebuild`.
 
-`just preview <profile>` is the authoritative check for everything else: it
+`just preview <profile>` is the authoritative check for everything else. It
 splits the whole closure into "will be fetched" (prebuilt) and "will be
 built" (local compile). If something is still under "will be built" after a
-successful update, Hydra hasn't cached it yet. Hold it back with
+successful update, Hydra hasn't cached it yet; hold it back with
 `just undo-update` and try again in a day.
+
+A nightly workflow runs the same `just update` and opens a PR when the lock
+moves. Every PR to `main` builds both profiles on a macOS runner against a
+mock `vars.nix`, so a broken configuration fails in CI rather than during a
+rebuild.
 
 ## Secrets
 
-Never in `.nix` files, since the Nix store is world-readable. API keys go in
-the macOS Keychain, or in per-project gitignored `.envrc` files via direnv.
+Never in `.nix` files: the Nix store is world-readable. API keys go in the
+macOS Keychain, or in per-project gitignored `.envrc` files via direnv. The
+devShell installs a pre-commit hook that scans staged changes for leaked
+secrets alongside the lint and format checks.
 
 ## Homebrew
 
-Used narrowly, for apps nix can't install directly: either the install needs
-a vendor-signed installer or kernel extension nix structurally can't do, or
-nixpkgs can't keep the app usable on `aarch64-darwin`. WhatsApp is the second
-case: nixpkgs pins an exact build fetched straight from WhatsApp's own CDN,
-which purges old versions faster than the flake gets bumped, breaking both
-the build and login on stale clients, so it comes from the `whatsapp` cask
-instead.
+Used narrowly, through nix-darwin's declarative `homebrew.*` module rather
+than ad hoc `brew install`. Two situations justify a cask: the install needs
+a vendor-signed installer or system extension that nix structurally can't
+perform, or nixpkgs can't keep the app usable on `aarch64-darwin`.
 
-## Privacy design
-
-Identity (username, home path, git name and email) lives in
-`~/.config/nix-config/vars.nix`, **outside this repo**. `flake.nix` takes it
-as a flake input named `vars`, pointed at that file with
-`--override-input vars path:~/.config/nix-config/vars.nix`. `.envrc`, the
-justfile, and CI all pass it already, so you shouldn't need to type it.
-
-Left un-overridden, `vars` resolves to the tracked `vars-required.nix` stub,
-which throws rather than silently using a placeholder. That keeps evaluation
-pure, with no `--impure` anywhere. The configurations are named by role
-(`personal`, `work`) so no hostname appears here either.
+WhatsApp is the second case. nixpkgs pins an exact build fetched straight
+from WhatsApp's own CDN, which purges old versions faster than the flake
+gets bumped, breaking both the build and login on stale clients, so it comes
+from the `whatsapp` cask instead. Brave is there for the same reason. The
+current list lives in `modules/homebrew.nix`.
