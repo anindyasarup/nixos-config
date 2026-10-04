@@ -17,6 +17,8 @@
       "oxc"
       "zig"
       "typst"
+      "csharp"
+      "charmed-icons"
     ];
     userSettings = {
       languages = {
@@ -59,6 +61,9 @@
         light = "One Light";
         dark = "One Dark";
       };
+      icon_theme = "Base Charmed Icons";
+      disable_ai = true;
+      cli_default_open_behavior = "new_window";
       markdown_preview = {
         limit_content_width = true;
         max_width = 1100;
