@@ -1,4 +1,5 @@
 {
+  lib,
   vars,
   ...
 }:
@@ -40,6 +41,12 @@
       "$HOME/.local/bin"
       "$HOME/Library/pnpm"
     ];
-    sessionVariables.PNPM_HOME = "${vars.homeDirectory}/Library/pnpm";
+    sessionVariables = {
+      PNPM_HOME = "${vars.homeDirectory}/Library/pnpm";
+    }
+    // lib.optionalAttrs (vars.certificateFiles or [ ] != [ ]) {
+      NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
+      SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+    };
   };
 }
