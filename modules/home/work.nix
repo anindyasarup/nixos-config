@@ -5,7 +5,6 @@
 
 {
   home.packages = with pkgs; [
-    postman
     slack
     colima
     docker
