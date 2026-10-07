@@ -8,6 +8,5 @@
     slack
     colima
     docker
-    github-copilot-cli
   ];
 }

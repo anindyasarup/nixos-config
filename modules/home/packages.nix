@@ -13,7 +13,9 @@
     fd
     ripgrep
     tree
+    bruno-cli
 
+    # Applications
     bruno
     discord
     raycast
