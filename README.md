@@ -1,5 +1,7 @@
 # nixos-config
 
+[![Build verification](https://github.com/anindyasarup/nixos-config/actions/workflows/build-verification.yaml/badge.svg)](https://github.com/anindyasarup/nixos-config/actions/workflows/build-verification.yaml)
+
 One declarative description of an Apple Silicon Mac: system settings, the
 packages installed on it, and the development environment. Built on
 nix-darwin and home-manager, running on Determinate Nix.
@@ -23,7 +25,7 @@ on PATH through direnv once you're inside this directory.
 
 The flake builds two configurations from one helper. `personal` is the base.
 `work` is that base plus `modules/work.nix`, which appends work-only
-packages (Slack, Postman, colima, docker) and pins a different set of dock
+packages (Slack, colima, docker) and pins a different set of dock
 apps.
 
 The profile argument is required on `just rebuild` and `just preview`, with
