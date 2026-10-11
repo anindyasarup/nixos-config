@@ -34,12 +34,16 @@
             };
           };
         };
+        JSON = {
+          indent_guides = {
+            coloring = "indent_aware";
+            background_coloring = "indent_aware";
+          };
+        };
       };
       terminal = {
         shell = {
-          with_arguments = {
-            program = "${pkgs.bashInteractive}/bin/bash";
-          };
+          program = "${pkgs.bashInteractive}/bin/bash";
         };
       };
       autosave = {
@@ -69,8 +73,12 @@
       };
       format_on_save = "on";
       relative_line_numbers = "enabled";
+      mouse_wheel_zoom = true;
     };
+    mutableUserSettings = false;
     mutableUserKeymaps = false;
+    mutableUserTasks = false;
+    mutableUserDebug = false;
     userKeymaps = [
       {
         context = "Workspace";
