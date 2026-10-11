@@ -39,7 +39,6 @@
         shell = {
           with_arguments = {
             program = "${pkgs.bashInteractive}/bin/bash";
-            args = [ "-l" ];
           };
         };
       };
