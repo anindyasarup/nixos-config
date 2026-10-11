@@ -12,6 +12,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     vars = {
       url = "path:./vars-required.nix";
@@ -25,6 +29,7 @@
       nix-darwin,
       home-manager,
       nix-homebrew,
+      git-hooks,
       vars,
       ...
     }:
@@ -40,21 +45,29 @@
         inherit system username moduleArgs;
       };
 
-      lefthookConfig = (pkgs.formats.yaml { }).generate ".lefthook.yaml" {
-        pre-commit = {
-          parallel = true;
-          skip = [
-            "merge"
-            "rebase"
-          ];
-          commands = {
-            betterleaks.run = "betterleaks git --pre-commit --staged";
-            statix.run = "statix check";
-            deadnix.run = "deadnix --fail";
-            nixfmt = {
-              glob = "*.nix";
-              run = "treefmt --fail-on-change";
-            };
+      preCommit = git-hooks.lib.${system}.run {
+        src = ./.;
+        package = pkgs.prek;
+        hooks = {
+          betterleaks = {
+            enable = true;
+            name = "betterleaks";
+            package = pkgs.betterleaks;
+            entry = "${pkgs.betterleaks}/bin/betterleaks git --pre-commit --staged";
+            pass_filenames = false;
+            priority = 1;
+          };
+          statix = {
+            enable = true;
+            priority = 1;
+          };
+          deadnix = {
+            enable = true;
+            priority = 1;
+          };
+          nixfmt = {
+            enable = true;
+            priority = 0;
           };
         };
       };
@@ -63,18 +76,11 @@
       formatter.${system} = pkgs.nixfmt-tree;
       devShells.${system}.default = pkgs.mkShellNoCC {
         packages = [
-          pkgs.statix
-          pkgs.deadnix
-          pkgs.nixfmt-tree
           pkgs.just
           pkgs.uv
-          pkgs.lefthook
-          pkgs.betterleaks
-        ];
-        shellHook = ''
-          ln -sf ${lefthookConfig} .lefthook.yaml
-          lefthook install
-        '';
+        ]
+        ++ preCommit.enabledPackages;
+        inherit (preCommit) shellHook;
       };
 
       darwinConfigurations = {

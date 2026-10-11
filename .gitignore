@@ -1,4 +1,3 @@
 result
 .direnv/
-/lefthook.yml
-/.lefthook.yaml
+/.pre-commit-config.yaml
