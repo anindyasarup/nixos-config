@@ -36,10 +36,7 @@ jobs:
           }
           EOF
 
-      # Zed is Rust and compiling Rust on this laptop is a lifestyle choice
-      # I did not sign up for. Asking cache.nixos.org nicely first.
-      - name: Check zed-editor and bump flake.lock
-        continue-on-error: true
+      - name: Bump flake.lock
         run: nix develop --override-input vars path:$HOME/.config/nix-config/vars.nix -c just update
 
       - name: Check for changes
@@ -74,7 +71,7 @@ jobs:
             --title "Bump flake.lock" \
             --base main \
             --head automated/flake-update \
-            --body "Automated: zed-editor is cached and ready to pull at this revision."
+            --body "Automated: flake.lock bumped to the latest inputs."
           then
             echo "Opened PR"
           else

@@ -34,6 +34,10 @@ Current casks:
 - `brave-browser` (reason 2): nixpkgs' `brave` repeatedly ships revisions
   whose pinned `.dmg`/`.zip` fails to unpack on `aarch64-darwin`, breaking
   `just rebuild` and the daily `automated/flake-update` CI for days.
+- `zed` (reason 2): Hydra often lags on `zed-editor`, so staying current
+  means compiling Zed's Rust locally. `modules/home/zed.nix` still owns
+  the settings and sets `package = null`. It points Zed at nixd and nixfmt
+  by store path, since `extraPackages` only works with a nix-built Zed.
 
 The `brew` binary itself comes from the `nix-homebrew` flake input (wired
 in `flake.nix`), so `just rebuild` alone installs everything.
@@ -85,9 +89,7 @@ machine-agnostic.
 The profile is a build-time argument, not a `vars.nix` field, so both
 machines share one `vars.nix` schema. Work git identity lives in
 `vars.git.work` and is selected by directory. `just rebuild` and
-`just preview` require the profile with no default. `just update`'s
-zed-editor cache probe hardcoding `personal` is fine: both profiles share
-the same `.pkgs`.
+`just preview` require the profile with no default.
 
 ## Non-obvious constraints
 
@@ -125,8 +127,8 @@ the same `.pkgs`.
 - Zed settings live only in `modules/home/zed.nix`. All four
   `mutableUser*` options are `false` because home-manager's default
   jq-merge never removes deleted keys. As a result, changes made in Zed's
-  UI can't be saved. `extraPackages` includes `nixfmt` to match `nix fmt`. There is
-  deliberately no `.zed/settings.json`.
+  UI can't be saved. The formatter is nixpkgs' `nixfmt` to match
+  `nix fmt`. There is deliberately no `.zed/settings.json`.
 - `modules/home/git.nix` picks git identity and SSH key by directory
   (`~/Development/personal/`, `~/Development/work/`); repos elsewhere get
   neither. Each `includeIf` rewrites `git@github.com:` to its own `Host`

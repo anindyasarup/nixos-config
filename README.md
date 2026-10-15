@@ -137,13 +137,10 @@ the work config on my personal machine, or the other way round.
 
 ### Updating
 
-`just update` bumps `flake.lock` to the tip of nixpkgs, then checks whether
-`zed-editor` is in the binary cache at that tip. Zed is the only package
-here big enough that compiling it locally really hurts. If it isn't cached,
-the recipe puts `flake.lock` back exactly as it was and exits with an
-error. Either way, nothing downloads until the next `just rebuild`.
+`just update` bumps `flake.lock` to the tip of nixpkgs. Nothing downloads
+until the next `just rebuild`.
 
-For everything else I use `just preview <profile>`. It splits
+I check an update with `just preview <profile>`. It splits
 the whole closure into "will be fetched" (prebuilt) and "will be built"
 (compiled on my machine). If something is still under "will be built" after
 an update, Hydra just hasn't caught up yet. I run `just undo-update` and try

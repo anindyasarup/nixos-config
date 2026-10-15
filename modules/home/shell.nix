@@ -33,10 +33,6 @@
   };
 
   home = {
-    shellAliases = {
-      zed = "zeditor";
-    };
-
     sessionPath = [
       "$HOME/.local/bin"
       "$HOME/Library/pnpm"

@@ -9,6 +9,7 @@ _:
       "claude"
       "whatsapp"
       "brave-browser"
+      "zed"
     ];
   };
 }

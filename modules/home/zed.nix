@@ -6,10 +6,7 @@
 {
   programs.zed-editor = {
     enable = true;
-    extraPackages = [
-      pkgs.nixd
-      pkgs.nixfmt
-    ];
+    package = null;
     extensions = [
       "nix"
       "toml"
@@ -29,7 +26,7 @@
           ];
           formatter = {
             external = {
-              command = "nixfmt";
+              command = "${pkgs.nixfmt}/bin/nixfmt";
               arguments = [ ];
             };
           };
@@ -38,6 +35,13 @@
           indent_guides = {
             coloring = "indent_aware";
             background_coloring = "indent_aware";
+          };
+        };
+      };
+      lsp = {
+        nixd = {
+          binary = {
+            path = "${pkgs.nixd}/bin/nixd";
           };
         };
       };
