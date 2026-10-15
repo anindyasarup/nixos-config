@@ -1,6 +1,6 @@
 # 9. Claude Code's own config stays out of Nix, tracked in a private repo instead
 
-Status: Accepted
+Status: Superseded: `~/.claude` is now managed by the `harness-config` flake input (`harness` in `flake.nix`)
 
 Files: (none, deliberately)
 

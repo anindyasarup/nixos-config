@@ -12,6 +12,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    harness-config.url = "github:anindyasarup/harness-config";
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,6 +30,7 @@
       nix-darwin,
       home-manager,
       nix-homebrew,
+      harness-config,
       git-hooks,
       vars,
       ...
@@ -43,6 +45,13 @@
 
       mkDarwin = import ./modules/mk-darwin.nix { inherit nix-darwin home-manager nix-homebrew; } {
         inherit system username moduleArgs;
+      };
+
+      harness = {
+        home-manager.sharedModules = [
+          harness-config.homeModules.default
+          { harness.claude-code.enable = true; }
+        ];
       };
 
       preCommit = git-hooks.lib.${system}.run {
@@ -84,8 +93,11 @@
       };
 
       darwinConfigurations = {
-        personal = mkDarwin [ ];
-        work = mkDarwin [ ./modules/work.nix ];
+        personal = mkDarwin [ harness ];
+        work = mkDarwin [
+          harness
+          ./modules/work.nix
+        ];
       };
     };
 }

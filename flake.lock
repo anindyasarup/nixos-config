@@ -54,6 +54,25 @@
         "type": "github"
       }
     },
+    "harness-config": {
+      "inputs": {
+        "humanizer": "humanizer",
+        "mattpocock-skills": "mattpocock-skills"
+      },
+      "locked": {
+        "lastModified": 1791722760,
+        "narHash": "sha256-HYSnia99p1V/jtGMB1X575PLyToyf3eOPDiapD9sCOU=",
+        "owner": "anindyasarup",
+        "repo": "harness-config",
+        "rev": "83cdcd62718258cd0cd1dc0f200f3bb0ba061660",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anindyasarup",
+        "repo": "harness-config",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -71,6 +90,38 @@
       "original": {
         "owner": "nix-community",
         "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "humanizer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790574878,
+        "narHash": "sha256-n8cbTzhlGf8VnWpPukq7XD2mucIrqyE1XMpAAc5oA8A=",
+        "owner": "blader",
+        "repo": "humanizer",
+        "rev": "225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "blader",
+        "repo": "humanizer",
+        "type": "github"
+      }
+    },
+    "mattpocock-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791368564,
+        "narHash": "sha256-rDTDP9smBDjVOloz61ZqWIMEn9sME5V4ulde1c79MaY=",
+        "owner": "mattpocock",
+        "repo": "skills",
+        "rev": "f3fc5632f401156837ee3872f14fe33ccf1024ea",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mattpocock",
+        "repo": "skills",
         "type": "github"
       }
     },
@@ -132,6 +183,7 @@
     "root": {
       "inputs": {
         "git-hooks": "git-hooks",
+        "harness-config": "harness-config",
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
