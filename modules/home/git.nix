@@ -12,6 +12,7 @@
 
       commit.verbose = true;
       pull.rebase = true;
+      pull.autostash = true;
       fetch.prune = true;
 
       alias = {
