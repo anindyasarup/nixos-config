@@ -17,6 +17,7 @@
       "csharp"
       "charmed-icons"
       "just"
+      "csv"
     ];
     userSettings = {
       languages = {
