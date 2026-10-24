@@ -60,11 +60,11 @@
         "mattpocock-skills": "mattpocock-skills"
       },
       "locked": {
-        "lastModified": 1792084435,
-        "narHash": "sha256-t6GlxE4eKaWgCuADBaUj9BoA0xlXJ7IOqcQJ2nX6xqI=",
+        "lastModified": 1792859196,
+        "narHash": "sha256-62s9UQv/Q3YYG6QSBHvscB/RLdFh1WxEdhtFegKP9wg=",
         "owner": "anindyasarup",
         "repo": "harness-config",
-        "rev": "15c907601341df896ebb5e0ea3df7c8f8a8e80a3",
+        "rev": "78c839713dfe88ca93ab71bc796a004737ef4429",
         "type": "github"
       },
       "original": {
@@ -80,11 +80,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792773325,
-        "narHash": "sha256-bvba9Lts8r8d15MdIDMwJGDxLtJiTlasKtAZyhTDzXk=",
+        "lastModified": 1792818371,
+        "narHash": "sha256-yhEZAzZRNvzYpoAlyFY3wM75V9BmkIXJIueof8S5gOg=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "6d9655f76459099b0db2f57b13563729c7022aa7",
+        "rev": "2cd3234928f60bbff695a7ee56115ef7799c47cd",
         "type": "github"
       },
       "original": {

@@ -50,7 +50,10 @@
       harness = {
         home-manager.sharedModules = [
           harness-config.homeModules.default
-          { harness.claude-code.enable = true; }
+          {
+            harness.claude-code.enable = true;
+            harness.omp.enable = true;
+          }
         ];
       };
 
