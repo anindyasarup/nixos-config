@@ -16,6 +16,7 @@
       "typst"
       "csharp"
       "charmed-icons"
+      "just"
     ];
     userSettings = {
       languages = {
