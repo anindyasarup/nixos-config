@@ -18,6 +18,7 @@
       "charmed-icons"
       "just"
       "csv"
+      "xml"
     ];
     userSettings = {
       languages = {
