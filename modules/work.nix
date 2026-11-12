@@ -3,6 +3,7 @@
 {
   homebrew.casks = [
     "citrix-workspace"
+    "omp"
   ];
 
   system.defaults.dock.persistent-apps = [
